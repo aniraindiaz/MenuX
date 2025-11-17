@@ -21,6 +21,10 @@ interface MenuItem {
   image_url: string | null;
   description: string | null;
   available: boolean;
+  price_30ml: number | null;
+  price_60ml: number | null;
+  price_90ml: number | null;
+  price_180ml: number | null;
 }
 
 export const MenuItemsTable = () => {
@@ -34,6 +38,10 @@ export const MenuItemsTable = () => {
     image_url: "",
     description: "",
     available: true,
+    price_30ml: "",
+    price_60ml: "",
+    price_90ml: "",
+    price_180ml: "",
   });
   
   const { toast } = useToast();
@@ -44,7 +52,7 @@ export const MenuItemsTable = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("menu_items")
-        .select("id,name,category,price,image_url,description,available")
+        .select("id,name,category,price,image_url,description,available,price_30ml,price_60ml,price_90ml,price_180ml")
         .order("category")
         .order("name");
       
@@ -75,6 +83,22 @@ export const MenuItemsTable = () => {
     return beverageKeywords.some(k => c.includes(k));
   };
 
+  const measureCategories = [
+    "Whiskey",
+    "Vodka",
+    "Gin",
+    "Rum",
+    "Brandy",
+    "Tequila",
+    "Liqueur"
+  ];
+
+  const excludedCategories = ["Juice", "Shots", "Beer", "Breezers", "Shakes", "Cocktail", "Mocktail", "Wine"];
+  const isMeasureCategory = (category: string) => {
+    if (excludedCategories.includes(category)) return false;
+    return measureCategories.includes(category);
+  };
+
   const filteredItems = useMemo(() => (
     selectedSection === "All Items"
       ? menuItems
@@ -94,6 +118,10 @@ export const MenuItemsTable = () => {
           image_url: values.image_url || null,
           description: values.description || null,
           available: values.available,
+          price_30ml: values.price_30ml ? parseFloat(values.price_30ml) : null,
+          price_60ml: values.price_60ml ? parseFloat(values.price_60ml) : null,
+          price_90ml: values.price_90ml ? parseFloat(values.price_90ml) : null,
+          price_180ml: values.price_180ml ? parseFloat(values.price_180ml) : null,
         }]);
       
       if (error) throw error;
@@ -121,6 +149,10 @@ export const MenuItemsTable = () => {
           image_url: values.image_url || null,
           description: values.description || null,
           available: values.available,
+          price_30ml: values.price_30ml ? parseFloat(values.price_30ml) : null,
+          price_60ml: values.price_60ml ? parseFloat(values.price_60ml) : null,
+          price_90ml: values.price_90ml ? parseFloat(values.price_90ml) : null,
+          price_180ml: values.price_180ml ? parseFloat(values.price_180ml) : null,
         })
         .eq("id", id);
       
@@ -183,6 +215,10 @@ export const MenuItemsTable = () => {
       image_url: "",
       description: "",
       available: true,
+      price_30ml: "",
+      price_60ml: "",
+      price_90ml: "",
+      price_180ml: "",
     });
     setEditingItem(null);
   };
@@ -205,6 +241,10 @@ export const MenuItemsTable = () => {
       image_url: item.image_url || "",
       description: item.description || "",
       available: item.available,
+      price_30ml: item.price_30ml != null ? item.price_30ml.toString() : "",
+      price_60ml: item.price_60ml != null ? item.price_60ml.toString() : "",
+      price_90ml: item.price_90ml != null ? item.price_90ml.toString() : "",
+      price_180ml: item.price_180ml != null ? item.price_180ml.toString() : "",
     });
     setIsOpen(true);
   };
@@ -266,13 +306,29 @@ export const MenuItemsTable = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="image">Image URL (optional)</Label>
-                  <Input
-                    id="image"
-                    type="url"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                  />
+                  <Label htmlFor="image">Image URL</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="image"
+                      type="url"
+                      placeholder="Image URL"
+                      value={formData.image_url}
+                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                    />
+                    <Button type="button" variant="secondary" onClick={() => document.getElementById("file-upload")?.click()}>
+                      Upload
+                    </Button>
+                    <input id="file-upload" type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const path = `menu-images/${Date.now()}-${file.name}`;
+                      const { error } = await supabase.storage.from("menu-images").upload(path, file);
+                      if (!error) {
+                        const { data } = supabase.storage.from("menu-images").getPublicUrl(path);
+                        setFormData((f) => ({ ...f, image_url: data.publicUrl }));
+                      }
+                    }} />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="description">Description (optional)</Label>
@@ -338,27 +394,35 @@ export const MenuItemsTable = () => {
         ) : (
           <div className="rounded-md border border-border overflow-x-auto">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Available</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredItems.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell>{item.category}</TableCell>
-                    <TableCell>₹{item.price.toFixed(2)}</TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={item.available}
-                        onCheckedChange={(checked) => toggleAvailability.mutate({ id: item.id, available: checked })}
-                      />
-                    </TableCell>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>30ml</TableHead>
+                <TableHead>60ml</TableHead>
+                <TableHead>90ml</TableHead>
+                <TableHead>180ml</TableHead>
+                <TableHead>Available</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredItems.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="font-medium">{item.name}</TableCell>
+                  <TableCell>{item.category}</TableCell>
+                  <TableCell>₹{item.price.toFixed(2)}</TableCell>
+                  <TableCell>{isMeasureCategory(item.category) && item.price_30ml != null ? `₹${item.price_30ml.toFixed(2)}` : "—"}</TableCell>
+                  <TableCell>{isMeasureCategory(item.category) && item.price_60ml != null ? `₹${item.price_60ml.toFixed(2)}` : "—"}</TableCell>
+                  <TableCell>{isMeasureCategory(item.category) && item.price_90ml != null ? `₹${item.price_90ml.toFixed(2)}` : "—"}</TableCell>
+                  <TableCell>{isMeasureCategory(item.category) && item.price_180ml != null ? `₹${item.price_180ml.toFixed(2)}` : "—"}</TableCell>
+                  <TableCell>
+                    <Switch
+                      checked={item.available}
+                      onCheckedChange={(checked) => toggleAvailability.mutate({ id: item.id, available: checked })}
+                    />
+                  </TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)}>
                         <Pencil className="w-4 h-4" />
@@ -385,3 +449,23 @@ export const MenuItemsTable = () => {
     </Card>
   );
 };
+                {isMeasureCategory(formData.category) && (
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="p30">30 ml</Label>
+                      <Input id="p30" type="number" step="0.01" value={formData.price_30ml} onChange={(e) => setFormData({ ...formData, price_30ml: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="p60">60 ml</Label>
+                      <Input id="p60" type="number" step="0.01" value={formData.price_60ml} onChange={(e) => setFormData({ ...formData, price_60ml: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="p90">90 ml</Label>
+                      <Input id="p90" type="number" step="0.01" value={formData.price_90ml} onChange={(e) => setFormData({ ...formData, price_90ml: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="p180">180 ml</Label>
+                      <Input id="p180" type="number" step="0.01" value={formData.price_180ml} onChange={(e) => setFormData({ ...formData, price_180ml: e.target.value })} />
+                    </div>
+                  </div>
+                )}
