@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -44,13 +44,14 @@ export const MenuItemsTable = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("menu_items")
-        .select("*")
+        .select("id,name,category,price,image_url,description,available")
         .order("category")
         .order("name");
       
       if (error) throw error;
       return data as MenuItem[];
     },
+    staleTime: 5 * 60 * 1000,
   });
   const beverageKeywords = [
     "drink",
@@ -74,12 +75,13 @@ export const MenuItemsTable = () => {
     return beverageKeywords.some(k => c.includes(k));
   };
 
-  const filteredItems =
+  const filteredItems = useMemo(() => (
     selectedSection === "All Items"
       ? menuItems
       : selectedSection === "Drinks"
       ? menuItems.filter(item => isDrink(item.category))
-      : menuItems.filter(item => !isDrink(item.category));
+      : menuItems.filter(item => !isDrink(item.category))
+  ), [selectedSection, menuItems]);
 
   const createMutation = useMutation({
     mutationFn: async (values: typeof formData) => {
@@ -326,7 +328,13 @@ export const MenuItemsTable = () => {
         </Tabs>
 
         {isLoading ? (
-          <p className="text-muted-foreground">Loading...</p>
+          <div className="rounded-md border border-border overflow-hidden">
+            <div className="p-4 space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-10 bg-muted rounded" />
+              ))}
+            </div>
+          </div>
         ) : (
           <div className="rounded-md border border-border overflow-x-auto">
             <Table>

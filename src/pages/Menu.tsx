@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -25,13 +25,14 @@ const Menu = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("menu_items")
-        .select("*")
+        .select("id,name,category,price,image_url,description,available")
         .eq("available", true)
         .order("name");
       
       if (error) throw error;
       return data as MenuItem[];
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: settings } = useQuery({
@@ -46,6 +47,7 @@ const Menu = () => {
       if (error) throw error;
       return data;
     },
+    staleTime: 10 * 60 * 1000,
   });
 
   const { data: promotions = [] } = useQuery({
@@ -84,35 +86,48 @@ const Menu = () => {
     return beverageKeywords.some(k => c.includes(k));
   };
 
-  const sectionFilteredItems =
-    selectedSection === "All"
-      ? menuItems
-      : selectedSection === "DRINKS"
-      ? menuItems.filter(item => isDrink(item.category))
-      : menuItems.filter(item => !isDrink(item.category));
+  const sectionFilteredItems = useMemo(() => {
+    if (selectedSection === "All") return menuItems;
+    if (selectedSection === "DRINKS") return menuItems.filter(item => isDrink(item.category));
+    return menuItems.filter(item => !isDrink(item.category));
+  }, [selectedSection, menuItems]);
 
-  const categories = [
+  const categories = useMemo(() => [
     "All",
     ...Array.from(new Set(sectionFilteredItems.map(item => item.category)))
-  ];
+  ], [sectionFilteredItems]);
 
-  const filteredItems =
+  const filteredItems = useMemo(() => (
     selectedCategory === "All"
       ? sectionFilteredItems
-      : sectionFilteredItems.filter(item => item.category === selectedCategory);
+      : sectionFilteredItems.filter(item => item.category === selectedCategory)
+  ), [selectedCategory, sectionFilteredItems]);
 
-  const groupedItems = filteredItems.reduce((acc, item) => {
+  const groupedItems = useMemo(() => filteredItems.reduce((acc, item) => {
     if (!acc[item.category]) {
       acc[item.category] = [];
     }
     acc[item.category].push(item);
     return acc;
-  }, {} as Record<string, MenuItem[]>);
+  }, {} as Record<string, MenuItem[]>), [filteredItems]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Loading menu...</p>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="rounded-xl border border-border bg-card overflow-hidden">
+                <div className="aspect-video bg-muted" />
+                <div className="p-6 space-y-3">
+                  <div className="h-6 w-2/3 bg-muted rounded" />
+                  <div className="h-4 w-full bg-muted rounded" />
+                  <div className="h-4 w-5/6 bg-muted rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
