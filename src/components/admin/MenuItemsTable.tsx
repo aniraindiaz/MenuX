@@ -339,6 +339,26 @@ export const MenuItemsTable = () => {
                     rows={3}
                   />
                 </div>
+                {isMeasureCategory(formData.category) && (
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="p30">30 ml</Label>
+                      <Input id="p30" type="number" step="0.01" value={formData.price_30ml} onChange={(e) => setFormData({ ...formData, price_30ml: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="p60">60 ml</Label>
+                      <Input id="p60" type="number" step="0.01" value={formData.price_60ml} onChange={(e) => setFormData({ ...formData, price_60ml: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="p90">90 ml</Label>
+                      <Input id="p90" type="number" step="0.01" value={formData.price_90ml} onChange={(e) => setFormData({ ...formData, price_90ml: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="p180">180 ml</Label>
+                      <Input id="p180" type="number" step="0.01" value={formData.price_180ml} onChange={(e) => setFormData({ ...formData, price_180ml: e.target.value })} />
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="available"
@@ -449,23 +469,3 @@ export const MenuItemsTable = () => {
     </Card>
   );
 };
-                {isMeasureCategory(formData.category) && (
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="p30">30 ml</Label>
-                      <Input id="p30" type="number" step="0.01" value={formData.price_30ml} onChange={(e) => setFormData({ ...formData, price_30ml: e.target.value })} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="p60">60 ml</Label>
-                      <Input id="p60" type="number" step="0.01" value={formData.price_60ml} onChange={(e) => setFormData({ ...formData, price_60ml: e.target.value })} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="p90">90 ml</Label>
-                      <Input id="p90" type="number" step="0.01" value={formData.price_90ml} onChange={(e) => setFormData({ ...formData, price_90ml: e.target.value })} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="p180">180 ml</Label>
-                      <Input id="p180" type="number" step="0.01" value={formData.price_180ml} onChange={(e) => setFormData({ ...formData, price_180ml: e.target.value })} />
-                    </div>
-                  </div>
-                )}

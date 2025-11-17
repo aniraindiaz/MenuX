@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { RestaurantSettings } from "@/components/admin/RestaurantSettings";
 import { MenuItemsTable } from "@/components/admin/MenuItemsTable";
 import { QRCodeGenerator } from "@/components/admin/QRCodeGenerator";
-import { PromotionsAdmin } from "@/components/admin/Promotions";
 import { AdminStatus } from "@/components/admin/AdminStatus";
 
 const Admin = () => {
@@ -101,7 +100,6 @@ const Admin = () => {
       <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
         <AdminStatus />
         <RestaurantSettings />
-        <PromotionsAdmin />
         <QRCodeGenerator />
         <MenuItemsTable />
       </main>
