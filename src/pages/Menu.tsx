@@ -17,6 +17,7 @@ interface MenuItem {
 }
 
 const Menu = () => {
+  const [selectedSection, setSelectedSection] = useState<string>("All");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
   const { data: menuItems = [], isLoading } = useQuery({
@@ -47,10 +48,58 @@ const Menu = () => {
     },
   });
 
-  const categories = ["All", ...Array.from(new Set(menuItems.map(item => item.category)))];
-  const filteredItems = selectedCategory === "All" 
-    ? menuItems 
-    : menuItems.filter(item => item.category === selectedCategory);
+  const { data: promotions = [] } = useQuery({
+    queryKey: ["promotions-active"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("promotions")
+        .select("*")
+        .eq("active", true)
+        .order("sort_order")
+        .order("created_at", { ascending: false });
+      if (error) return [] as { id: string; title: string; description: string | null }[];
+      return (data ?? []) as { id: string; title: string; description: string | null }[];
+    },
+  });
+
+  const beverageKeywords = [
+    "drink",
+    "beverage",
+    "juice",
+    "tea",
+    "coffee",
+    "soda",
+    "mocktail",
+    "cocktail",
+    "water",
+    "shake",
+    "smoothie",
+    "lassi",
+    "beer",
+    "wine"
+  ];
+
+  const isDrink = (category: string) => {
+    const c = category.toLowerCase();
+    return beverageKeywords.some(k => c.includes(k));
+  };
+
+  const sectionFilteredItems =
+    selectedSection === "All"
+      ? menuItems
+      : selectedSection === "DRINKS"
+      ? menuItems.filter(item => isDrink(item.category))
+      : menuItems.filter(item => !isDrink(item.category));
+
+  const categories = [
+    "All",
+    ...Array.from(new Set(sectionFilteredItems.map(item => item.category)))
+  ];
+
+  const filteredItems =
+    selectedCategory === "All"
+      ? sectionFilteredItems
+      : sectionFilteredItems.filter(item => item.category === selectedCategory);
 
   const groupedItems = filteredItems.reduce((acc, item) => {
     if (!acc[item.category]) {
@@ -82,16 +131,53 @@ const Menu = () => {
         </div>
       </header>
 
-      {/* Category Tabs */}
+      {/* Section Tabs */}
       <div className="sticky top-[73px] z-10 bg-background border-b border-border py-4">
         <div className="max-w-7xl mx-auto px-4">
+          <Tabs value={selectedSection} onValueChange={setSelectedSection} className="w-full">
+            <TabsList className="w-full h-16 rounded-2xl border border-border bg-card/30 p-1 flex">
+              {(["DRINKS", "FOOD"] as const).map((section, idx) => (
+                <TabsTrigger
+                  key={section}
+                  value={section}
+                  className={
+                    "flex-1 rounded-xl text-lg font-bold " +
+                    "data-[state=active]:text-white " +
+                    (section === "DRINKS"
+                      ? "data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-400 data-[state=active]:to-pink-500"
+                      : "data-[state=active]:bg-card data-[state=active]:text-primary")
+                  }
+                >
+                  {section}
+                </TabsTrigger>
+              ))}
+              <TabsTrigger
+                key="All"
+                value="All"
+                className="hidden"
+              >
+                All
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      </div>
+
+      {/* Category Tabs */}
+      <div className="sticky top-[118px] z-10 bg-background border-b border-border py-4">
+        <div className="max-w-7xl mx-auto px-4">
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-            <TabsList className="w-full justify-start overflow-x-auto flex-nowrap h-auto bg-card/50">
+            <TabsList className="w-full justify-start overflow-x-auto flex-nowrap h-auto bg-transparent gap-2 p-0">
               {categories.map((category) => (
                 <TabsTrigger 
                   key={category} 
                   value={category}
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-6 py-2 whitespace-nowrap"
+                  className={
+                    (category === "All"
+                      ? "rounded-full px-4 py-2 bg-gradient-to-r from-cyan-400 to-pink-500 text-white"
+                      : "rounded-full px-4 py-2 text-cyan-300 hover:text-cyan-200") +
+                    " whitespace-nowrap"
+                  }
                 >
                   {category}
                 </TabsTrigger>
@@ -100,6 +186,25 @@ const Menu = () => {
           </Tabs>
         </div>
       </div>
+
+      {/* Promotions */}
+      {promotions.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 mt-6">
+          <div className="rounded-2xl border border-amber-700 bg-gradient-to-br from-amber-900/50 to-amber-700/30 p-6">
+            <h3 className="text-xl font-bold text-amber-300 mb-4">Special Offers</h3>
+            <div className="space-y-3">
+              {promotions.map((promo) => (
+                <div key={promo.id} className="rounded-xl bg-amber-800/40 px-4 py-3">
+                  <p className="font-semibold text-amber-100">{promo.title}</p>
+                  {promo.description && (
+                    <p className="text-sm text-amber-200/80">{promo.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Menu Items */}
       <main className="max-w-7xl mx-auto px-4 py-8">

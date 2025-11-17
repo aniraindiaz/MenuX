@@ -50,6 +50,36 @@ export type Database = {
         }
         Relationships: []
       }
+      promotions: {
+        Row: {
+          id: string
+          title: string
+          description: string | null
+          active: boolean
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          description?: string | null
+          active?: boolean
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string | null
+          active?: boolean
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       restaurant_settings: {
         Row: {
           created_at: string
