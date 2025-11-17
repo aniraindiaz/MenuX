@@ -50,20 +50,6 @@ const Menu = () => {
     staleTime: 10 * 60 * 1000,
   });
 
-  const { data: promotions = [] } = useQuery({
-    queryKey: ["promotions-active"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("promotions")
-        .select("id,title,description,audience,active,sort_order,created_at")
-        .eq("active", true)
-        .order("sort_order")
-        .order("created_at", { ascending: false });
-      if (error) return [] as { id: string; title: string; description: string | null; audience: string | null }[];
-      return (data ?? []) as { id: string; title: string; description: string | null; audience: string | null }[];
-    },
-  });
-
   const beverageKeywords = [
     "drink",
     "beverage",
@@ -201,32 +187,6 @@ const Menu = () => {
           </Tabs>
         </div>
       </div>
-
-      {/* Promotions */}
-      {promotions.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 mt-6">
-          <div className="rounded-2xl border border-amber-700 bg-gradient-to-br from-amber-900/50 to-amber-700/30 p-6">
-            <h3 className="text-xl font-bold text-amber-300 mb-4">Special Offers</h3>
-            <div className="space-y-3">
-              {promotions.map((promo) => (
-                <div key={promo.id} className="rounded-xl bg-amber-800/40 px-4 py-3">
-                  <p className="font-semibold text-amber-100">
-                    {promo.title}
-                    {promo.audience && (
-                      <span className="ml-2 inline-flex items-center rounded-full bg-gradient-to-r from-cyan-400 to-pink-500 px-2 py-0.5 text-xs text-white">
-                        {promo.audience}
-                      </span>
-                    )}
-                  </p>
-                  {promo.description && (
-                    <p className="text-sm text-amber-200/80">{promo.description}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Menu Items */}
       <main className="max-w-7xl mx-auto px-4 py-8">

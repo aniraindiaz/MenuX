@@ -24,6 +24,10 @@ export type Database = {
           image_url: string | null
           name: string
           price: number
+          price_180ml: number | null
+          price_30ml: number | null
+          price_60ml: number | null
+          price_90ml: number | null
           updated_at: string
         }
         Insert: {
@@ -35,6 +39,10 @@ export type Database = {
           image_url?: string | null
           name: string
           price: number
+          price_180ml?: number | null
+          price_30ml?: number | null
+          price_60ml?: number | null
+          price_90ml?: number | null
           updated_at?: string
         }
         Update: {
@@ -46,39 +54,10 @@ export type Database = {
           image_url?: string | null
           name?: string
           price?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
- Service      promotions: {
-        Row: {
-          id: string
-          title: string
-          description: string | null
-          active: boolean
-          sort_order: number
-          audience: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          title: string
-          description?: string | null
-          active?: boolean
-          sort_order?: number
-          audience?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          title?: string
-          description?: string | null
-          active?: boolean
-          sort_order?: number
-          audience?: string | null
-          created_at?: string
+          price_180ml?: number | null
+          price_30ml?: number | null
+          price_60ml?: number | null
+          price_90ml?: number | null
           updated_at?: string
         }
         Relationships: []
