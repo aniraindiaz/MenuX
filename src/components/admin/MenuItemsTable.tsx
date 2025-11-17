@@ -26,7 +26,7 @@ interface MenuItem {
 export const MenuItemsTable = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
-  const [categoryFilter, setCategoryFilter] = useState("All Items");
+  const [selectedSection, setSelectedSection] = useState("All Items");
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -52,11 +52,34 @@ export const MenuItemsTable = () => {
       return data as MenuItem[];
     },
   });
+  const beverageKeywords = [
+    "drink",
+    "beverage",
+    "juice",
+    "tea",
+    "coffee",
+    "soda",
+    "mocktail",
+    "cocktail",
+    "water",
+    "shake",
+    "smoothie",
+    "lassi",
+    "beer",
+    "wine"
+  ];
 
-  const categories = ["All Items", ...Array.from(new Set(menuItems.map(item => item.category)))];
-  const filteredItems = categoryFilter === "All Items" 
-    ? menuItems 
-    : menuItems.filter(item => item.category === categoryFilter);
+  const isDrink = (category: string) => {
+    const c = category.toLowerCase();
+    return beverageKeywords.some(k => c.includes(k));
+  };
+
+  const filteredItems =
+    selectedSection === "All Items"
+      ? menuItems
+      : selectedSection === "Drinks"
+      ? menuItems.filter(item => isDrink(item.category))
+      : menuItems.filter(item => !isDrink(item.category));
 
   const createMutation = useMutation({
     mutationFn: async (values: typeof formData) => {
@@ -275,11 +298,28 @@ export const MenuItemsTable = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <Tabs value={categoryFilter} onValueChange={setCategoryFilter} className="mb-4">
-          <TabsList className="w-full justify-start overflow-x-auto flex-nowrap h-auto">
-            {categories.map((category) => (
-              <TabsTrigger key={category} value={category} className="whitespace-nowrap">
-                {category} ({category === "All Items" ? menuItems.length : menuItems.filter(i => i.category === category).length})
+        <Tabs value={selectedSection} onValueChange={setSelectedSection} className="mb-4">
+          <TabsList className="w-full h-12 rounded-2xl border border-border bg-card/30 p-1 flex">
+            {(["All Items", "Drinks", "Food"] as const).map((section) => (
+              <TabsTrigger
+                key={section}
+                value={section}
+                className={
+                  "flex-1 rounded-xl text-sm font-semibold data-[state=active]:text-white " +
+                  (section === "Drinks"
+                    ? "data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-400 data-[state=active]:to-pink-500"
+                    : section === "Food"
+                    ? "data-[state=active]:bg-card data-[state=active]:text-primary"
+                    : "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground")
+                }
+              >
+                {section} (
+                  {section === "All Items"
+                    ? menuItems.length
+                    : section === "Drinks"
+                    ? menuItems.filter(i => isDrink(i.category)).length
+                    : menuItems.filter(i => !isDrink(i.category)).length}
+                )
               </TabsTrigger>
             ))}
           </TabsList>
