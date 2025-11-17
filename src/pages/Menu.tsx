@@ -55,12 +55,12 @@ const Menu = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("promotions")
-        .select("*")
+        .select("id,title,description,audience,active,sort_order,created_at")
         .eq("active", true)
         .order("sort_order")
         .order("created_at", { ascending: false });
-      if (error) return [] as { id: string; title: string; description: string | null }[];
-      return (data ?? []) as { id: string; title: string; description: string | null }[];
+      if (error) return [] as { id: string; title: string; description: string | null; audience: string | null }[];
+      return (data ?? []) as { id: string; title: string; description: string | null; audience: string | null }[];
     },
   });
 
@@ -210,7 +210,14 @@ const Menu = () => {
             <div className="space-y-3">
               {promotions.map((promo) => (
                 <div key={promo.id} className="rounded-xl bg-amber-800/40 px-4 py-3">
-                  <p className="font-semibold text-amber-100">{promo.title}</p>
+                  <p className="font-semibold text-amber-100">
+                    {promo.title}
+                    {promo.audience && (
+                      <span className="ml-2 inline-flex items-center rounded-full bg-gradient-to-r from-cyan-400 to-pink-500 px-2 py-0.5 text-xs text-white">
+                        {promo.audience}
+                      </span>
+                    )}
+                  </p>
                   {promo.description && (
                     <p className="text-sm text-amber-200/80">{promo.description}</p>
                   )}

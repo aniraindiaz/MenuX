@@ -50,13 +50,14 @@ export type Database = {
         }
         Relationships: []
       }
-      promotions: {
+ Service      promotions: {
         Row: {
           id: string
           title: string
           description: string | null
           active: boolean
           sort_order: number
+          audience: string | null
           created_at: string
           updated_at: string
         }
@@ -66,6 +67,7 @@ export type Database = {
           description?: string | null
           active?: boolean
           sort_order?: number
+          audience?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -75,6 +77,7 @@ export type Database = {
           description?: string | null
           active?: boolean
           sort_order?: number
+          audience?: string | null
           created_at?: string
           updated_at?: string
         }

@@ -9,6 +9,7 @@ import { RestaurantSettings } from "@/components/admin/RestaurantSettings";
 import { MenuItemsTable } from "@/components/admin/MenuItemsTable";
 import { QRCodeGenerator } from "@/components/admin/QRCodeGenerator";
 import { PromotionsAdmin } from "@/components/admin/Promotions";
+import { AdminStatus } from "@/components/admin/AdminStatus";
 
 const Admin = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -98,6 +99,7 @@ const Admin = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+        <AdminStatus />
         <RestaurantSettings />
         <PromotionsAdmin />
         <QRCodeGenerator />

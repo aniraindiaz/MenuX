@@ -10,12 +10,13 @@ import { Label } from "@/components/ui/label";
 interface PromotionForm {
   title: string;
   description: string;
+  audience: string;
   active: boolean;
 }
 
 export const PromotionsAdmin = () => {
   const queryClient = useQueryClient();
-  const [form, setForm] = useState<PromotionForm>({ title: "", description: "", active: true });
+  const [form, setForm] = useState<PromotionForm>({ title: "", description: "", audience: "", active: true });
 
   const { data: promotions = [] } = useQuery({
     queryKey: ["promotions"],
@@ -35,13 +36,14 @@ export const PromotionsAdmin = () => {
       const { error } = await supabase.from("promotions").insert({
         title: payload.title,
         description: payload.description || null,
+        audience: payload.audience || null,
         active: payload.active,
       });
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["promotions"] });
-      setForm({ title: "", description: "", active: true });
+      setForm({ title: "", description: "", audience: "", active: true });
     },
   });
 
@@ -79,6 +81,15 @@ export const PromotionsAdmin = () => {
                 placeholder="e.g., Cocktail & Mocktail at 99"
               />
             </div>
+            <div>
+              <Label htmlFor="promo-audience">Audience</Label>
+              <Input
+                id="promo-audience"
+                value={form.audience}
+                onChange={(e) => setForm((f) => ({ ...f, audience: e.target.value }))}
+                placeholder="e.g., Ladies"
+              />
+            </div>
             <div className="flex items-center gap-3">
               <Switch
                 id="promo-active"
@@ -100,6 +111,19 @@ export const PromotionsAdmin = () => {
           <Button onClick={() => addMutation.mutate(form)} disabled={!form.title.trim()}>
             Add Promotion
           </Button>
+          <Button
+            variant="outline"
+            onClick={() =>
+              addMutation.mutate({
+                title: "Free Drinks for Ladies",
+                description: "Complimentary select drinks for ladies tonight",
+                audience: "Ladies",
+                active: true,
+              })
+            }
+          >
+            Add Ladies Night Offer
+          </Button>
         </CardContent>
       </Card>
 
@@ -108,7 +132,14 @@ export const PromotionsAdmin = () => {
           <Card key={p.id} className="bg-card/60">
             <CardContent className="p-4 flex items-center justify-between gap-4">
               <div>
-                <p className="font-semibold">{p.title}</p>
+                <p className="font-semibold">
+                  {p.title}
+                  {p.audience && (
+                    <span className="ml-2 inline-flex items-center rounded-full bg-gradient-to-r from-cyan-400 to-pink-500 px-2 py-0.5 text-xs text-white">
+                      {p.audience}
+                    </span>
+                  )}
+                </p>
                 {p.description && (
                   <p className="text-sm text-muted-foreground">{p.description}</p>
                 )}
